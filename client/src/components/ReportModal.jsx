@@ -1,20 +1,23 @@
 import React, { useState } from 'react';
 import { X, MapPin, Camera, Loader2, UploadCloud, Send } from 'lucide-react';
-import './ReportModal.css'; // Make sure to import your CSS file
+import API from '../services/api'; // <--- IMPORT YOUR API.JS
+import { toast } from 'react-hot-toast'; // Ensure you have installed 'react-hot-toast'
+import './ReportModal.css'; 
 
-const ReportIssueModal = ({ isOpen, onClose }) => {
+const ReportIssueModal = ({ isOpen, onClose, onReportSubmit }) => {
   if (!isOpen) return null;
 
   // --- State Management ---
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  
-  // Image State
   const [images, setImages] = useState([]);
-
+  
   // Location State
   const [location, setLocation] = useState(null);
+  
+  // Loading States
   const [isLocating, setIsLocating] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // <--- New loading state
 
   // --- Handlers ---
   const handleImageUpload = (e) => {
@@ -32,24 +35,101 @@ const ReportIssueModal = ({ isOpen, onClose }) => {
     setImages(images.filter((_, index) => index !== indexToRemove));
   };
 
+  // --- 🌍 REAL DYNAMIC LOCATION HANDLER ---
   const handleGetLocation = () => {
     setIsLocating(true);
-    // Simulating API delay
-    setTimeout(() => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((position) => {
-                setLocation({
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                    address: "Near Civil Lines, Nagpur, Maharashtra"
-                });
-                setIsLocating(false);
-            }, (error) => {
-                alert("Unable to retrieve location");
-                setIsLocating(false);
-            });
-        }
-    }, 1500); 
+
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser");
+      setIsLocating(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      const { latitude, longitude } = position.coords;
+
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+        );
+        const data = await response.json();
+
+        setLocation({
+          lat: latitude,
+          lng: longitude,
+          address: data.display_name || `Lat: ${latitude}, Lng: ${longitude}`
+        });
+        
+      } catch (error) {
+        console.error("Error fetching address:", error);
+        setLocation({
+          lat: latitude,
+          lng: longitude,
+          address: "Location detected (Address lookup failed)" 
+        });
+      } finally {
+        setIsLocating(false);
+      }
+
+    }, (error) => {
+      console.error("Geolocation Error:", error);
+      toast.error("Unable to retrieve location.");
+      setIsLocating(false);
+    });
+  };
+
+  // --- 🚀 THE SUBMIT FUNCTION (Connects to Backend) ---
+  const handleSubmit = async () => {
+    // 1. Validation
+    if (!title || !description) {
+      return toast.error("Please add a title and description");
+    }
+    if (!location) {
+      return toast.error("Please add a location");
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // 2. Prepare Data (FormData is required for file uploads)
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('description', description);
+      formData.append('latitude', location.lat);
+      formData.append('longitude', location.lng);
+      formData.append('address', location.address);
+
+      // Append the first image if it exists
+      if (images.length > 0) {
+        formData.append('image', images[0].file); 
+      }
+
+      // 3. Send to Backend (Using your API.js)
+      // The interceptor in api.js will auto-attach the Token
+      await API.post('/reports', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      // 4. Success Handling
+      toast.success("Report Submitted Successfully!");
+      
+      // Reset Form
+      setTitle('');
+      setDescription('');
+      setImages([]);
+      setLocation(null);
+      
+      // Refresh the parent dashboard if needed
+      if (onReportSubmit) onReportSubmit();
+
+      onClose();
+
+    } catch (error) {
+      console.error("Submission Failed", error);
+      toast.error(error.response?.data?.message || "Failed to submit report");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -159,12 +239,12 @@ const ReportIssueModal = ({ isOpen, onClose }) => {
 
         {/* Footer */}
         <div className="modal-footer">
-            <button onClick={onClose} className="btn btn-secondary">
+            <button onClick={onClose} disabled={isSubmitting} className="btn btn-secondary">
                 Cancel
             </button>
-            <button className="btn btn-primary">
-                <Send size={18} />
-                Submit Report
+            <button onClick={handleSubmit} disabled={isSubmitting} className="btn btn-primary">
+                {isSubmitting ? <Loader2 className="spinner" size={18} /> : <Send size={18} />}
+                {isSubmitting ? "Submitting..." : "Submit Report"}
             </button>
         </div>
       </div>

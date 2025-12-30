@@ -35,13 +35,15 @@ const VerifyOtp = () => {
   };
 
   return (
-    <div style={{minHeight: '100vh', display: 'flex', alignItems: 'center'}}>
+    // 1. Added justifyContent: 'center' to fix alignment
+    <div style={{minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
       <div className="glass-card">
         <h1>Verify Email</h1>
         <p className="subtitle">Enter the code sent to {state?.email}</p>
 
         <form onSubmit={handleVerify}>
-          <div className="input-group">
+          {/* 2. Added maxWidth and margin to center & shrink the input bar */}
+          <div className="input-group" style={{ maxWidth: '300px', margin: '0 auto 24px auto' }}>
             <ShieldCheck className="input-icon" size={20} />
             <input 
               type="text" 
@@ -51,7 +53,15 @@ const VerifyOtp = () => {
               className="input-field"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
-              style={{ letterSpacing: '5px', fontSize: '1.2rem', textAlign: 'center' }}
+              // 3. Adjusted padding and spacing for a cleaner look
+              style={{ 
+                letterSpacing: '8px', 
+                fontSize: '1.2rem', 
+                textAlign: 'center',
+                paddingLeft: '10px', 
+                paddingTop: '12px',
+                paddingBottom: '12px'
+              }}
             />
           </div>
 
