@@ -15,13 +15,23 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (userData) => {
-    setUser(userData);
-    localStorage.setItem("villageUser", JSON.stringify(userData));
+    // 1. If the data has a 'token', save it separately (Standard practice)
+    if (userData.token) {
+      localStorage.setItem("token", userData.token);
+    }
+
+    // 2. Un-wrap the user object if it's nested (e.g. { user: {...}, token: ... })
+    // This fixes the issue where Profile Update might pass a wrapped object
+    const userObj = userData.user ? userData.user : userData;
+
+    setUser(userObj);
+    localStorage.setItem("villageUser", JSON.stringify(userObj));
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem("villageUser");
+    localStorage.removeItem("token"); // Clean up token on logout
   };
 
   return (

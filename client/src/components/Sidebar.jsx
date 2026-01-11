@@ -5,7 +5,7 @@ import { LayoutGrid, PlusSquare, FileText, UserCircle, LogOut, Hexagon } from "l
 import { motion } from "framer-motion";
 
 const Sidebar = () => {
-  const { logout } = useContext(AuthContext);
+  const { logout, user } = useContext(AuthContext); // 1. Get 'user' to check role
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -16,9 +16,9 @@ const Sidebar = () => {
 
   const navItems = [
     { icon: LayoutGrid, label: "Overview", path: "/dashboard" },
-    { icon: PlusSquare, label: "Report Issue", path: "#", action: true }, // Special action item
+    // { icon: PlusSquare, label: "Report Issue", path: "/report-issue", action: true }, 
     { icon: FileText, label: "My Reports", path: "/my-reports" },
-    { icon: UserCircle, label: "Profile", path: "/profile" },
+    { icon: UserCircle, label: "Profile", path: "/profile" }, // Placeholder for now
   ];
 
   return (
@@ -33,17 +33,28 @@ const Sidebar = () => {
       </div>
 
       <nav style={{ flex: 1 }}>
-        {navItems.map((item, idx) => (
-          <Link
-            key={idx}
-            to={item.path}
-            className={`nav-link ${location.pathname === item.path ? "active" : ""}`}
-            onClick={item.action ? (e) => e.preventDefault() : null} // Prevent Nav for action items
-          >
-            <item.icon size={20} />
-            {item.label}
-          </Link>
-        ))}
+        {navItems.map((item, idx) => {
+          // 2. Hide "Report Issue" if the user is an Authority
+          if (user?.role === 'authority' && item.label === "Report Issue") return null;
+
+          return (
+            <Link
+              key={idx}
+              to={item.path}
+              className={`nav-link ${location.pathname === item.path ? "active" : ""}`}
+              onClick={item.action ? (e) => e.preventDefault() : null}
+              style={{
+                 // Gray out the "Report Issue" link in sidebar since it doesn't open the modal yet
+                 // (The main button on Dashboard handles that)
+                 opacity: item.action ? 0.5 : 1, 
+                 cursor: item.action ? 'default' : 'pointer'
+              }}
+            >
+              <item.icon size={20} />
+              {item.label}
+            </Link>
+          );
+        })}
       </nav>
 
       <button onClick={handleLogout} className="nav-link" style={{ marginTop: 'auto', color: '#ff8a8a' }}>

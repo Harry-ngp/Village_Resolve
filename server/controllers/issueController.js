@@ -316,3 +316,77 @@ exports.verifyIssue = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// ... (Your existing code stays above this line) ...
+
+/**
+ * 🗣️ ADD COMMENT (Feature 8)
+ * POST /api/issues/:id/comment
+ * Access: Private (Any User)
+ */
+exports.addComment = async (req, res) => {
+  try {
+    const { text } = req.body;
+    const { id } = req.params;
+
+    if (!text) {
+      return res.status(400).json({ message: "Comment text is required" });
+    }
+
+    const issue = await Issue.findById(id);
+    if (!issue) {
+      return res.status(404).json({ message: "Issue not found" });
+    }
+
+    // Create comment object
+    const newComment = {
+      user: req.user._id,
+      text: text,
+      createdAt: new Date()
+    };
+
+    // Add to array
+    issue.comments.push(newComment);
+    await issue.save();
+
+    // Populate user details to return immediately to frontend
+    await issue.populate("comments.user", "name");
+
+    // Return the updated list of comments
+    res.status(201).json(issue.comments);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * ⭐ RATE RESOLVED ISSUE (Feature 13)
+ * POST /api/issues/:id/rate
+ * Access: Private (Citizen)
+ */
+exports.rateIssue = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rating, comment } = req.body;
+
+    // 1. Find Issue
+    const issue = await Issue.findById(id);
+    if (!issue) {
+      return res.status(404).json({ message: "Issue not found" });
+    }
+
+    // 2. Update the rating field 
+    // (Ensure your Issue Model has this field added as per previous instructions!)
+    issue.rating = {
+      score: rating,
+      comment: comment,
+      ratedAt: new Date()
+    };
+
+    await issue.save();
+
+    res.json(issue);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

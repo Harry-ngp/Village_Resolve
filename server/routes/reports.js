@@ -125,4 +125,21 @@ router.post('/:id/comment', auth, async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
 });
+
+// --- GET: Fetch Only My Reports ---
+router.get('/me', auth, async (req, res) => {
+  try {
+    // Find reports where 'user' matches the logged-in ID
+    const reports = await Report.find({ user: req.user.id })
+      .sort({ createdAt: -1 })
+      .populate('user', 'name')
+      .populate('comments.user', 'name');
+      
+    res.json(reports);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
 module.exports = router;

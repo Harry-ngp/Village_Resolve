@@ -1,4 +1,4 @@
-const User = require("../models/user"); // Ensure filename matches your model (User.js vs user.js)
+const User = require("../models/User"); // Ensure filename matches your model
 const bcrypt = require("bcryptjs");
 const emailjs = require("@emailjs/nodejs");
 const jwt = require("jsonwebtoken");
@@ -10,11 +10,8 @@ const generateToken = (id) => {
   });
 };
 
-/**
- * ®️ REGISTER USER & SEND OTP
- * POST /api/auth/register
- */
-exports.register = async (req, res) => {
+// --- 1. REGISTER USER & SEND OTP ---
+const register = async (req, res) => {
   try {
     const { name, email, password, village, role } = req.body;
 
@@ -27,20 +24,20 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // Hash password (if not handled by pre-save hook in model)
-    // Note: If your User model has a pre-save hook for hashing, remove this manual hash.
-    // Assuming manual hash based on previous context:
-    // const salt = await bcrypt.genSalt(10);
-    // const hashedPassword = await bcrypt.hash(password, salt);
-    
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
+    // Create User (isVerified: false)
+    // Note: We are passing password directly assuming your User model has a pre-save hook to hash it.
+    // If not, uncomment the manual hashing lines below.
+    // const salt = await bcrypt.genSalt(10);
+    // const hashedPassword = await bcrypt.hash(password, salt);
+
     const user = await User.create({
       name,
       email,
-      password, // Let the model handle hashing if setup, otherwise hash here
+      password, 
       village,
       role: role || "citizen",
       otp,
@@ -48,7 +45,7 @@ exports.register = async (req, res) => {
       isVerified: false 
     });
 
-    // Send OTP email
+    // Send OTP email using EmailJS
     try {
       await emailjs.send(
         process.env.EMAILJS_SERVICE_ID,
@@ -58,12 +55,11 @@ exports.register = async (req, res) => {
       );
     } catch (emailError) {
       console.error("EmailJS Error:", emailError);
-      // We continue even if email fails, so you can test via console logs if needed
+      // We continue even if email fails so you can test via console logs
     }
 
-    console.log(`DEBUG OTP for ${email}: ${otp}`); // Remove this in production!
+    console.log(`DEBUG OTP for ${email}: ${otp}`); // Remove in production
 
-    // STRICT MODE: Do NOT send token here. Redirect to OTP page.
     res.status(201).json({
       message: "OTP sent to your email. Please verify.",
       email: user.email,
@@ -76,15 +72,11 @@ exports.register = async (req, res) => {
   }
 };
 
-/**
- * ✅ VERIFY OTP
- * POST /api/auth/verify-otp
- */
-exports.verifyOtp = async (req, res) => {
+// --- 2. VERIFY OTP ---
+const verifyOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
     
-    // Find user (we need the +password select if using select: false in schema, but not needed here just for OTP)
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -114,7 +106,6 @@ exports.verifyOtp = async (req, res) => {
     user.otpExpires = undefined;
     await user.save();
 
-    // Log them in immediately
     res.json({
       message: "Email verified successfully",
       _id: user._id,
@@ -129,11 +120,8 @@ exports.verifyOtp = async (req, res) => {
   }
 };
 
-/**
- * 🔑 LOGIN USER
- * POST /api/auth/login
- */
-exports.login = async (req, res) => {
+// --- 3. LOGIN USER ---
+const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -169,11 +157,52 @@ exports.login = async (req, res) => {
   }
 };
 
-/**
- * 👤 GET CURRENT USER
- * GET /api/auth/me
- */
-exports.getMe = async (req, res) => {
-  const user = await User.findById(req.user.id);
-  res.status(200).json(user);
+// --- 4. GET CURRENT USER ---
+const getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+// --- 5. UPDATE USER DETAILS ---
+const updateDetails = async (req, res) => {
+  try {
+    const { name, village } = req.body;
+
+    // req.user.id comes from the 'protect' middleware
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Update fields if provided
+    if (name) user.name = name;
+    if (village) user.village = village;
+
+    await user.save();
+
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      village: user.village,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+// --- EXPORT ALL FUNCTIONS ---
+module.exports = {
+  register,
+  verifyOtp,
+  login,
+  getMe,
+  updateDetails, 
 };

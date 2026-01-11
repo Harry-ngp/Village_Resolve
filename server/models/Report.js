@@ -16,13 +16,21 @@ const reportSchema = new mongoose.Schema({
   },
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   
-  // --- UPDATED SECTIONS ---
-  upvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Array of User IDs
+  // --- UPDATED SECTIONS (EXISTING) ---
+  upvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], 
   comments: [{
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Who commented?
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, 
     text: String,
     createdAt: { type: Date, default: Date.now }
-  }]
+  }],
+
+  // --- 🔥 NEW SECTION: RATING (ADD THIS) ---
+  rating: {
+    score: { type: Number, default: 0 }, // Stores 1-5 stars
+    comment: { type: String, default: "" }, // Feedback text
+    ratedAt: { type: Date }
+  }
+
 }, { timestamps: true });
 
 module.exports = mongoose.model('Report', reportSchema);
