@@ -1,231 +1,249 @@
-import React from "react";
+import React, { useRef } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { 
-  ShieldCheck, MapPin, Users, ArrowRight, 
-  Github, Linkedin, Code, ChevronDown 
+import { motion, useScroll, useTransform, useSpring, useInView } from "framer-motion";
+import {
+  ShieldCheck, MapPin, Users, ArrowRight,
+  Github, Linkedin, Code, ChevronDown
 } from "lucide-react";
 
 // --- ANIMATION VARIANTS ---
-const fadeInUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
-};
-
-const staggerContainer = {
+const containerVar = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.2,
-      delayChildren: 0.3
-    }
+    transition: { staggerChildren: 0.15, delayChildren: 0.2 }
   }
 };
 
-const scaleIn = {
-  hidden: { opacity: 0, scale: 0.8 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } }
+const itemVar = {
+  hidden: { y: 30, opacity: 0 },
+  visible: { y: 0, opacity: 1, transition: { duration: 0.6, ease: "easeOut" } }
 };
 
 const LandingPage = () => {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
+
+  // Parallax Refs
+  const heroRef = useRef(null);
+  const { scrollY } = useScroll();
+
+  // Parallax transforms
+  const yHeroText = useTransform(scrollY, [0, 500], [0, 200]);
+  const yHeroImg = useTransform(scrollY, [0, 500], [0, -100]);
+  const opacityHero = useTransform(scrollY, [0, 400], [1, 0]);
+
   return (
-    <div style={{ position: 'relative', minHeight: '100vh', background: '#1e1e2e', color: 'white', overflowX: 'hidden' }}>
-      
-      {/* --- DYNAMIC BACKGROUND ELEMENTS --- */}
-      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', zIndex: 0, pointerEvents: 'none' }}>
-        <motion.div 
-            animate={{ x: [0, 100, 0], y: [0, -50, 0], scale: [1, 1.1, 1] }}
-            transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-            style={{ position: 'absolute', top: '-10%', left: '-10%', width: '40vw', height: '40vw', background: 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, rgba(0,0,0,0) 70%)', borderRadius: '50%', filter: 'blur(40px)' }} 
-        />
-        <motion.div 
-            animate={{ x: [0, -70, 0], y: [0, 100, 0], scale: [1, 1.2, 1] }}
-            transition={{ duration: 25, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-            style={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '50vw', height: '50vw', background: 'radial-gradient(circle, rgba(168,85,247,0.15) 0%, rgba(0,0,0,0) 70%)', borderRadius: '50%', filter: 'blur(60px)' }} 
+    <div style={{ position: 'relative', background: '#0f172a', color: 'white', overflowX: 'hidden', fontFamily: '"Inter", sans-serif' }}>
+
+      {/* SCROLL PROGRESS BAR */}
+      <motion.div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: "4px",
+          background: "linear-gradient(90deg, #6366f1, #a855f7, #ec4899)",
+          transformOrigin: "0%",
+          scaleX,
+          zIndex: 9999
+        }}
+      />
+
+      {/* --- DYNAMIC BACKGROUND --- */}
+      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 50%), radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.15) 0%, transparent 50%)'
+        }} />
+        <motion.div
+          animate={{
+            backgroundPosition: ['0% 0%', '100% 100%'],
+            opacity: [0.3, 0.5, 0.3]
+          }}
+          transition={{ duration: 20, repeat: Infinity, repeatType: "reverse" }}
+          style={{
+            position: 'absolute', inset: 0,
+            backgroundImage: 'url("https://www.transparenttextures.com/patterns/cubes.png")', // Subtle texture
+            opacity: 0.3
+          }}
         />
       </div>
 
       <div style={{ position: 'relative', zIndex: 1 }}>
-        
+
         {/* --- NAVBAR --- */}
-        <motion.nav 
-          initial={{ y: -100 }} animate={{ y: 0 }} transition={{ type: 'spring', stiffness: 120 }}
-          style={{ padding: '20px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backdropFilter: 'blur(10px)', position: 'sticky', top: 0, zIndex: 100, borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(30,30,46,0.8)' }}
-        >
-          <motion.div whileHover={{ scale: 1.02 }} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.5rem', fontWeight: 'bold', cursor: 'pointer' }}>
-            <div style={{ width: '35px', height: '35px', background: 'linear-gradient(135deg, #6366f1, #a855f7)', borderRadius: '8px', boxShadow: '0 4px 12px rgba(99,102,241,0.3)' }}></div>
-            <span style={{ background: 'linear-gradient(to right, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Village Resolve</span>
-          </motion.div>
-          <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-            <Link to="/login" style={{ textDecoration: 'none', color: '#a5b4fc', fontWeight: '600', padding: '10px 20px', transition: 'color 0.3s' }} onMouseOver={(e) => e.currentTarget.style.color = 'white'} onMouseOut={(e) => e.currentTarget.style.color = '#a5b4fc'}>Login</Link>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link to="/register" style={{ textDecoration: 'none', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', padding: '12px 30px', borderRadius: '30px', color: 'white', fontWeight: '700', boxShadow: '0 4px 15px rgba(99,102,241,0.4)' }}>Get Started</Link>
-            </motion.div>
-          </div>
-        </motion.nav>
+        <Navbar />
 
         {/* --- HERO SECTION --- */}
-        <header style={{ minHeight: '85vh', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '40px 8%', gap: '50px' }}>
-          
-          {/* Text Side */}
-          <motion.div 
-            variants={staggerContainer} 
-            initial="hidden" 
-            animate="visible" 
-            style={{ maxWidth: '600px' }}
+        <header ref={heroRef} style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', padding: '0 8%' }}>
+          <motion.div
+            style={{ y: yHeroText, opacity: opacityHero, zIndex: 2, maxWidth: '800px', textAlign: 'center' }}
+            variants={containerVar}
+            initial="hidden"
+            animate="visible"
           >
-            <motion.div variants={fadeInUp} style={{ display: 'inline-block', padding: '8px 16px', background: 'rgba(99,102,241,0.15)', color: '#a5b4fc', borderRadius: '30px', fontWeight: '600', fontSize: '0.9rem', marginBottom: '20px', border: '1px solid rgba(99,102,241,0.3)' }}>
-              🚀 Civic Engagement Platform v1.0
+            <motion.div variants={itemVar} style={{ display: 'inline-block', marginBottom: '20px' }}>
+              <span style={{ padding: '8px 20px', borderRadius: '50px', background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)', color: '#a5b4fc', fontSize: '0.9rem', fontWeight: 'bold', letterSpacing: '1px' }}>
+                🚀 REVOLUTIONIZING CIVIC ENGAGEMENT
+              </span>
             </motion.div>
-            <motion.h1 
-              variants={fadeInUp}
-              style={{ fontSize: '4.5rem', fontWeight: '800', marginBottom: '20px', lineHeight: 1.1 }}
+
+            <motion.h1
+              variants={itemVar}
+              style={{ fontSize: 'clamp(3rem, 6vw, 5rem)', fontWeight: '900', lineHeight: 1.1, marginBottom: '25px', letterSpacing: '-0.02em' }}
             >
-              Empowering <span style={{ background: 'linear-gradient(to right, #6366f1, #a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Communities</span>, Resolving Issues Together.
+              Resolve Local Issues <br />
+              <span style={{ background: 'linear-gradient(to right, #6366f1, #d946ef)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                With Speed & Trust
+              </span>
             </motion.h1>
-            
-            <motion.p 
-              variants={fadeInUp}
-              style={{ fontSize: '1.25rem', color: '#94a3b8', marginBottom: '40px', lineHeight: '1.7' }}
+
+            <motion.p
+              variants={itemVar}
+              style={{ fontSize: '1.25rem', color: '#cbd5e1', maxWidth: '600px', margin: '0 auto 40px auto', lineHeight: 1.6 }}
             >
-              A seamless platform for citizens to report local issues and authorities to track and resolve them in real-time. Join the movement for a better village today.
+              Join the platform where voices matter. Report potholes, broken lights, and public hazards directly to authorities. Track resolution in real-time.
             </motion.p>
 
-            <motion.div variants={fadeInUp} style={{ display: 'flex', gap: '20px' }}>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Link to="/register" style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'white', color: '#1e1e2e', padding: '18px 40px', borderRadius: '40px', fontWeight: 'bold', fontSize: '1.1rem', textDecoration: 'none', boxShadow: '0 10px 30px rgba(255,255,255,0.2)' }}>
-                    Join Now <ArrowRight size={20} />
-                  </Link>
-              </motion.div>
-              <motion.a 
-                href="#features" 
-                whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.1)' }} 
+            <motion.div variants={itemVar} style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Link to="/register" style={{ textDecoration: 'none' }}>
+                <motion.button
+                  whileHover={{ scale: 1.05, boxShadow: '0 0 25px rgba(99, 102, 241, 0.6)' }}
+                  whileTap={{ scale: 0.95 }}
+                  style={{ padding: '16px 40px', fontSize: '1.1rem', fontWeight: 'bold', borderRadius: '50px', border: 'none', background: 'linear-gradient(135deg, #6366f1, #a855f7)', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}
+                >
+                  Get Started Now <ArrowRight size={20} />
+                </motion.button>
+              </Link>
+              <motion.a
+                href="#features"
+                whileHover={{ scale: 1.05, background: 'rgba(255,255,255,0.1)' }}
                 whileTap={{ scale: 0.95 }}
-                style={{ display: 'flex', alignItems: 'center', gap: '10px', border: '2px solid rgba(255,255,255,0.2)', color: 'white', padding: '18px 40px', borderRadius: '40px', fontWeight: 'bold', fontSize: '1.1rem', textDecoration: 'none', transition: 'background 0.3s' }}
+                style={{ padding: '16px 40px', fontSize: '1.1rem', fontWeight: 'bold', borderRadius: '50px', border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: 'white', cursor: 'pointer', textDecoration: 'none' }}
               >
-                Learn More
+                How it Works
               </motion.a>
             </motion.div>
           </motion.div>
-            
-          {/* FIXED SECTION: 
-              1. Outer motion.div handles the "Entrance" (sliding in from right)
-              2. Inner motion.img handles the "Floating Loop" (bobbing up and down)
-          */}
-          <motion.div 
-             initial={{ opacity: 0, x: 50 }} 
-             animate={{ opacity: 1, x: 0 }} 
-             transition={{ duration: 1, delay: 0.5 }}
-             style={{ flex: 1, maxWidth: '500px', display: 'flex', justifyContent: 'center' }}
+
+          {/* Parallax Background Elements */}
+          <motion.div style={{ position: 'absolute', top: '15%', right: '5%', y: yHeroImg, zIndex: 0, opacity: 0.6 }}>
+            <FloatingImg src="https://cdn-icons-png.flaticon.com/512/3063/3063823.png" size="120px" delay={0} />
+          </motion.div>
+          <motion.div style={{ position: 'absolute', bottom: '20%', left: '8%', y: yHeroImg, zIndex: 0, opacity: 0.5 }}>
+            <FloatingImg src="https://cdn-icons-png.flaticon.com/512/9630/9630006.png" size="150px" delay={1.5} />
+          </motion.div>
+
+          {/* Scroll Indicator */}
+          <motion.div
+            animate={{ y: [0, 10, 0], opacity: [0.5, 1, 0.5] }}
+            transition={{ repeat: Infinity, duration: 2 }}
+            style={{ position: 'absolute', bottom: '40px', left: '50%', translateX: '-50%' }}
           >
-              <motion.img 
-                  animate={{ y: [-15, 15, -15] }} 
-                  transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-                  src="https://static1.howtogeekimages.com/wordpress/wp-content/uploads/2021/01/google-maps-satellite.png" 
-                  alt="Community Resolving Issues" 
-                  style={{ width: '100%', height: 'auto', dropShadow: '0 25px 50px rgba(0,0,0,0.3)' }} 
-              />
+            <ChevronDown size={40} color="#a5b4fc" />
           </motion.div>
         </header>
-        
-        {/* Scroll Down Indicator */}
-        <motion.div 
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }}
-          style={{ display: 'flex', justifyContent: 'center', marginBottom: '40px' }}
-        >
-            <motion.a href="#features" animate={{ y: [0, 10, 0] }} transition={{ repeat: Infinity, duration: 1.5 }} style={{ color: '#a5b4fc', cursor: 'pointer' }}>
-                <ChevronDown size={32} />
-            </motion.a>
-        </motion.div>
 
         {/* --- FEATURES SECTION --- */}
-        <section id="features" style={{ padding: '100px 8%', background: 'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.2) 100%)' }}>
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-150px" }}
-            variants={staggerContainer}
-            style={{ textAlign: 'center', marginBottom: '80px' }}
-          >
-            <motion.h2 variants={fadeInUp} style={{ fontSize: '3rem', marginBottom: '15px', fontWeight: '800' }}>Why Village Resolve?</motion.h2>
-            <motion.p variants={fadeInUp} style={{ color: '#a5b4fc', fontSize: '1.2rem' }}>Bridging the digital gap between problems and real-world solutions.</motion.p>
-          </motion.div>
+        <section id="features" style={{ padding: '100px 8%', position: 'relative' }}>
+          <SectionHeader title="Why Choose Us?" subtitle="Advanced technology meeting community needs." />
 
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={staggerContainer}
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '40px' }}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '50px', paddingTop: '40px' }}>
+            <ParallaxCard
+              icon={<MapPin size={40} />}
+              title="Geo-Tagged Precision"
+              desc="Pinpoint map integration ensures authorities know exactly where the problem lies. No more vague descriptions."
+              color="#f472b6"
+            />
+            <ParallaxCard
+              icon={<ShieldCheck size={40} />}
+              title="Verified Resolutions"
+              desc="Official authorities verify fixes with photo evidence before closing mapping tickets. Trust is built on proof."
+              color="#4ade80"
+            />
+            <ParallaxCard
+              icon={<Users size={40} />}
+              title="Community Voting"
+              desc="Vote on issues that matter to you. High priority issues bubble up for faster resolution."
+              color="#60a5fa"
+            />
+          </div>
+        </section>
+
+        {/* --- STATS / BANNER SECTION --- */}
+        <section style={{ padding: '80px 0', background: 'linear-gradient(90deg, #1e1b4b, #312e81)' }}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: '40px', textAlign: 'center' }}
           >
-            <FeatureCard 
-              icon={<MapPin size={32} color="white" />} 
-              color="#f472b6" 
-              title="Geo-Tagged Reports" 
-              desc="Pinpoint the exact location of issues like potholes or broken lights using accurate map integration." 
-            />
-            <FeatureCard 
-              icon={<ShieldCheck size={32} color="white" />} 
-              color="#4ade80" 
-              title="Verified Action" 
-              desc="Authorities update status with proof. Watch issues move from 'Open' to 'Resolved' in real-time." 
-            />
-            <FeatureCard 
-              icon={<Users size={32} color="white" />} 
-              color="#60a5fa" 
-              title="Community Power" 
-              desc="Citizens upvote critical issues to prioritize them. Collective voice drives faster action." 
-            />
+            <StatItem number="10k+" label="Active Users" />
+            <StatItem number="500+" label="Issues Resolved" />
+            <StatItem number="50+" label="Partnered Villages" />
           </motion.div>
         </section>
 
         {/* --- DEVELOPER SECTION --- */}
-        <section style={{ padding: '120px 8%', background: 'rgba(99,102,241,0.03)', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-          <motion.div 
-             initial="hidden"
-             whileInView="visible"
-             viewport={{ once: true, margin: "-150px" }}
-             variants={staggerContainer}
-             style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '80px', flexWrap: 'wrap-reverse', justifyContent: 'center' }}
-          >
-            {/* Dev Info */}
-            <motion.div variants={fadeInUp} style={{ flex: 1, minWidth: '300px' }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', borderRadius: '20px', fontSize: '0.9rem', marginBottom: '25px', fontWeight: 'bold', border: '1px solid rgba(99,102,241,0.3)' }}>
-                <Code size={16} /> MEET THE DEVELOPER
+        <section style={{ padding: '120px 8%', background: '#0f172a' }}>
+          <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '80px', flexWrap: 'wrap-reverse', justifyContent: 'center' }}>
+
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+              style={{ flex: 1, minWidth: '300px' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                <div style={{ width: '40px', height: '4px', background: '#6366f1' }}></div>
+                <span style={{ color: '#a5b4fc', fontWeight: 'bold', letterSpacing: '1px' }}>MEET THE CREATOR</span>
               </div>
-              <h2 style={{ fontSize: '3.5rem', margin: '0 0 10px 0', fontWeight: '800' }}>Harikesh Pasi</h2>
-              <h4 style={{ color: '#a5b4fc', margin: '0 0 25px 0', fontSize: '1.4rem', fontWeight: '500' }}>Full Stack Developer (MERN)</h4>
-              <p style={{ lineHeight: '1.8', color: 'rgba(255,255,255,0.8)', marginBottom: '40px', fontSize: '1.1rem' }}>
-                Passionate about building scalable web applications that solve real-world problems. 
-                Built <strong>Village Resolve</strong> to demonstrate the power of modern web tech 
-                in civic engagement and transparency.
+              <h2 style={{ fontSize: '3.5rem', fontWeight: '800', marginBottom: '10px' }}>Harikesh Pasi</h2>
+              <h4 style={{ fontSize: '1.5rem', color: '#94a3b8', fontWeight: '500', marginBottom: '30px' }}>Full Stack MERN Developer</h4>
+              <p style={{ fontSize: '1.1rem', lineHeight: '1.8', color: '#cbd5e1', marginBottom: '40px' }}>
+                Dedicated to building impactful digital solutions. Village Resolve is a testament to the power of code in solving real human problems.
+                Merging technical excellence with social responsibility.
               </p>
-              
+
               <div style={{ display: 'flex', gap: '20px' }}>
-                <SocialBtn icon={<Github size={22} />} label="GitHub" href="https://github.com" />
-                <SocialBtn icon={<Linkedin size={22} />} label="LinkedIn" href="https://linkedin.com" />
-                <SocialBtn icon={<Code size={22} />} label="Portfolio" href="#" />
+                <SocialBtn icon={<Github />} label="GitHub" />
+                <SocialBtn icon={<Linkedin />} label="LinkedIn" />
+                <SocialBtn icon={<Code />} label="Portfolio" />
               </div>
             </motion.div>
 
-             {/* Dev Image/Avatar */}
-             <motion.div 
-               variants={scaleIn}
-               whileHover={{ scale: 1.03, rotate: 2 }}
-               style={{ width: '350px', height: '400px', borderRadius: '30px', overflow: 'hidden', boxShadow: '0 30px 60px rgba(0,0,0,0.4)', border: '4px solid rgba(255,255,255,0.1)' }}
+            <motion.div
+              initial={{ opacity: 0, x: 50, rotate: 5 }}
+              whileInView={{ opacity: 1, x: 0, rotate: 0 }}
+              whileHover={{ scale: 1.02, rotate: 2 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+              style={{ width: '400px', height: '400px', position: 'relative' }}
             >
-               <img src="https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=800&auto=format&fit=crop" alt="Developer" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <div style={{ position: 'absolute', inset: 0, border: '2px solid #6366f1', borderRadius: '30px', transform: 'translate(20px, 20px)', zIndex: 0 }}></div>
+              <img
+                src="https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=800&auto=format&fit=crop"
+                alt="Harikesh"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '30px', position: 'relative', zIndex: 1, boxShadow: '0 25px 50px rgba(0,0,0,0.5)' }}
+              />
             </motion.div>
-          </motion.div>
+
+          </div>
         </section>
 
         {/* --- FOOTER --- */}
-        <footer style={{ padding: '50px', textAlign: 'center', background: '#181824', color: '#64748b' }}>
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-             <div style={{ width: '35px', height: '35px', background: 'linear-gradient(135deg, #6366f1, #a855f7)', borderRadius: '8px', margin: '0 auto 20px auto', opacity: 0.5 }}></div>
-             <p style={{ fontSize: '1.1rem', fontWeight: '500', color: '#a5b4fc' }}>Village Resolve</p>
-             <p style={{ marginTop: '10px' }}>&copy; 2024. Built with ❤️ and React by Harikesh.</p>
+        <footer style={{ padding: '60px 0', background: '#020617', borderTop: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+          >
+            <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white', marginBottom: '10px' }}>Village Resolve</h3>
+            <p style={{ color: '#64748b' }}>&copy; {new Date().getFullYear()} Harikesh Pasi. All rights reserved.</p>
           </motion.div>
         </footer>
 
@@ -234,28 +252,103 @@ const LandingPage = () => {
   );
 };
 
-// --- SUB-COMPONENTS ---
+// --- SUB COMPONENTS ---
 
-const FeatureCard = ({ icon, color, title, desc }) => (
-  <motion.div 
-    variants={fadeInUp}
-    whileHover={{ y: -10, backgroundColor: 'rgba(255,255,255,0.08)', borderColor: color }}
-    style={{ background: 'rgba(255,255,255,0.03)', padding: '40px 30px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.08)', transition: 'border-color 0.3s', textAlign: 'left' }}
+const Navbar = () => {
+  return (
+    <motion.nav
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ type: "spring", stiffness: 100, damping: 20 }}
+      style={{
+        position: 'fixed', top: 0, left: 0, right: 0,
+        padding: '20px 50px',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        backdropFilter: 'blur(10px)', background: 'rgba(15, 23, 42, 0.7)',
+        zIndex: 100, borderBottom: '1px solid rgba(255,255,255,0.05)'
+      }}
+    >
+      <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #6366f1, #d946ef)', borderRadius: '8px' }}></div>
+        Village Resolve
+      </div>
+      <div style={{ display: 'flex', gap: '30px', alignItems: 'center' }}>
+        <Link to="/login" style={{ textDecoration: 'none', color: '#cbd5e1', fontWeight: '600', transition: 'color 0.3s' }}>Login</Link>
+        <Link to="/register" style={{ textDecoration: 'none' }}>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            style={{ padding: '10px 25px', borderRadius: '30px', border: 'none', background: 'white', color: '#0f172a', fontWeight: 'bold', cursor: 'pointer' }}
+          >
+            Sign Up
+          </motion.button>
+        </Link>
+      </div>
+    </motion.nav>
+  );
+};
+
+const SectionHeader = ({ title, subtitle }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 30 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ duration: 0.6 }}
+    style={{ textAlign: 'center', marginBottom: '60px' }}
   >
-    <div style={{ marginBottom: '25px', background: color, width: '60px', height: '60px', borderRadius: '16px', display:'flex', alignItems:'center', justifyContent:'center', boxShadow: `0 10px 20px -5px ${color}66` }}>
-      {icon}
-    </div>
-    <h3 style={{ fontSize: '1.5rem', marginBottom: '15px', fontWeight: '700' }}>{title}</h3>
-    <p style={{ color: '#94a3b8', lineHeight: '1.7', fontSize: '1.05rem' }}>{desc}</p>
+    <h2 style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '15px' }}>{title}</h2>
+    <div style={{ width: '60px', height: '4px', background: '#6366f1', margin: '0 auto 20px auto', borderRadius: '2px' }}></div>
+    <p style={{ fontSize: '1.2rem', color: '#94a3b8' }}>{subtitle}</p>
   </motion.div>
 );
 
-const SocialBtn = ({ icon, label, href }) => (
-  <motion.a 
-    href={href || "#"} target="_blank" rel="noopener noreferrer"
-    whileHover={{ scale: 1.1, backgroundColor: 'white', color: '#1e1e2e' }}
-    whileTap={{ scale: 0.95 }}
-    style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '12px 24px', borderRadius: '12px', fontWeight: '600', cursor: 'pointer', textDecoration: 'none', transition: 'background 0.2s, color 0.2s' }}
+const ParallaxCard = ({ icon, title, desc, color }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      whileHover={{ y: -15 }}
+      style={{
+        background: 'rgba(30, 41, 59, 0.5)',
+        padding: '40px',
+        borderRadius: '24px',
+        border: '1px solid rgba(255,255,255,0.05)',
+        position: 'relative',
+        overflow: 'hidden'
+      }}
+    >
+      <div style={{ position: 'absolute', top: 0, right: 0, width: '100px', height: '100px', background: color, filter: 'blur(60px)', opacity: 0.2 }}></div>
+      <div style={{ color: color, marginBottom: '25px', background: 'rgba(255,255,255,0.05)', width: '70px', height: '70px', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {icon}
+      </div>
+      <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '15px' }}>{title}</h3>
+      <p style={{ color: '#94a3b8', lineHeight: '1.6' }}>{desc}</p>
+    </motion.div>
+  );
+};
+
+const FloatingImg = ({ src, size, delay }) => (
+  <motion.img
+    src={src}
+    animate={{ y: [-20, 20, -20], rotate: [0, 5, -5, 0] }}
+    transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: delay }}
+    style={{ width: size, height: 'auto', filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))' }}
+  />
+);
+
+const StatItem = ({ number, label }) => (
+  <div>
+    <h3 style={{ fontSize: '3rem', fontWeight: '800', background: 'linear-gradient(to bottom, #fff, #94a3b8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{number}</h3>
+    <p style={{ color: '#a5b4fc', fontSize: '1.1rem', fontWeight: '600' }}>{label}</p>
+  </div>
+);
+
+const SocialBtn = ({ icon, label }) => (
+  <motion.a
+    href="#"
+    whileHover={{ y: -5, color: '#6366f1' }}
+    style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#cbd5e1', textDecoration: 'none', fontSize: '1rem', fontWeight: '500', transition: 'color 0.2s' }}
   >
     {icon} {label}
   </motion.a>

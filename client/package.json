@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@google/genai": "^1.35.0",
     "axios": "^1.6.0",
     "framer-motion": "^10.16.4",
     "leaflet": "^1.9.4",

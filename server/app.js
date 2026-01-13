@@ -9,7 +9,7 @@ const authRoutes = require("./routes/authRoutes");
 const issueRoutes = require("./routes/issueRoutes");
 const commentRoutes = require("./routes/commentRoutes");
 const analyticsRoutes = require("./routes/analyticsRoutes"); // <-- 1. NEW IMPORT
-
+const chatRoutes = require("./routes/chatRoutes"); // AI Chat Route
 
 const app = express();
 
@@ -22,8 +22,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api/issues", issueRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/analytics", analyticsRoutes); // <-- 2. NEW ROUTE MOUNTED
+app.use("/api/chat", chatRoutes); // AI Chat Endpoint
 // 1. Allow the frontend to view uploaded images
-app.use('/uploads', express.static('uploads')); 
+app.use('/uploads', express.static('uploads'));
 // 2. Use the reports route
 app.use('/api/reports', require('./routes/reports'));
 
